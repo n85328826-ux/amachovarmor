@@ -6,7 +6,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, fil
 # НАСТРОЙКИ — вставьте свои токены
 # ==============================
 TELEGRAM_TOKEN = "8854935248:AAFldkciTv21faskfdrflwsW-ESeswBL6jM"
-OPENROUTER_API_KEY = "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"  # sk-or-...
+OPENROUTER_API_KEY = "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"  # sk-or-...
 
 # ==============================
 # ЧЕК-ЛИСТ
