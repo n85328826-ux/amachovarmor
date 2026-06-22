@@ -5,8 +5,8 @@ import google.generativeai as genai
 # ==============================
 # НАСТРОЙКИ — вставьте свои токены
 # ==============================
-TELEGRAM_TOKEN = 8854935248:AAFldkciTv21faskfdrflwsW-ESeswBL6jM  # токен от @BotFather
-GEMINI_API_KEY = AQ.Ab8RN6Ji94Xfo4mEosZAFSJGv_Z3O5nINgQVwbtTIKhXlGZnww        # ключ от aistudio.google.com
+TELEGRAM_TOKEN = "8854935248:AAFldkciTv21faskfdrflwsW-ESeswBL6jM"  # токен от @BotFather
+GEMINI_API_KEY = "AQ.Ab8RN6Ji94Xfo4mEosZAFSJGv_Z3O5nINgQVwbtTIKhXlGZnww"        # ключ от aistudio.google.com
 
 # ==============================
 # ЧЕК-ЛИСТ (база знаний бота)
