@@ -57,7 +57,7 @@ async def ask_openrouter(user_id: int, text: str) -> str:
                 "Content-Type": "application/json",
             },
             json={
-                "model": "mistralai/mistral-7b-instruct:free",
+                "model": "mistralai/mistral-7b-instruct",
                 "messages": [
                     {"role": "system", "content": CHECKLIST},
                     *user_histories[user_id]
