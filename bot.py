@@ -5,7 +5,7 @@ import google.generativeai as genai
 # ==============================
 # НАСТРОЙКИ — вставьте свои токены
 # ==============================
-TELEGRAM_TOKEN = "8854935248:AAFldkciTv21faskfdrflwsW-ESeswBL6jM"  # токен от @BotFather
+TELEGRAM_TOKEN = "8854935248:AAFldkciTv21faskfdrflwsW-ESeswBL6jM"   # токен от @BotFather
 GEMINI_API_KEY = "AQ.Ab8RN6Ji94Xfo4mEosZAFSJGv_Z3O5nINgQVwbtTIKhXlGZnww"        # ключ от aistudio.google.com
 
 # ==============================
@@ -59,27 +59,17 @@ model = genai.GenerativeModel(
 )
 
 async def ask_gemini(user_id: int, user_message: str) -> str:
-    """Отправляет сообщение в Gemini и возвращает ответ"""
-
-    # Инициализируем историю для нового пользователя
     if user_id not in user_histories:
         user_histories[user_id] = model.start_chat(history=[])
-
     chat = user_histories[user_id]
     response = chat.send_message(user_message)
     return response.text
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработчик входящих сообщений"""
     user_id = update.effective_user.id
     user_text = update.message.text
-
-    await context.bot.send_chat_action(
-        chat_id=update.effective_chat.id,
-        action="typing"
-    )
-
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
     try:
         reply = await ask_gemini(user_id, user_text)
         await update.message.reply_text(reply)
@@ -91,7 +81,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def handle_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Приветственное сообщение"""
     await update.message.reply_text(
         "👋 Здравствуйте! Я помогу вам с вопросами по защите телефона.\n\n"
         "Спросите меня о:\n"
@@ -103,12 +92,11 @@ async def handle_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
-    """Запуск бота"""
     app = Application.builder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", handle_start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    print("✅ Бот запущен! Нажмите Ctrl+C для остановки.")
-    app.run_polling()
+    print("✅ Бот запущен!")
+    app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
 if __name__ == "__main__":
