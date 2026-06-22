@@ -1,5 +1,4 @@
-import asyncio
-import google.generativeai as genai
+import httpx
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
@@ -7,7 +6,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, fil
 # НАСТРОЙКИ — вставьте свои токены
 # ==============================
 TELEGRAM_TOKEN = "8854935248:AAFldkciTv21faskfdrflwsW-ESeswBL6jM"
-GEMINI_API_KEY = "AQ.Ab8RN6Ji94Xfo4mEosZAFSJGv_Z3O5nINgQVwbtTIKhXlGZnww"
+OPENROUTER_API_KEY = "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"  # sk-or-...
 
 # ==============================
 # ЧЕК-ЛИСТ
@@ -41,17 +40,35 @@ CHECKLIST = """
 
 user_histories = {}
 
-genai.configure(api_key=GEMINI_API_KEY)
-gemini = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
-    system_instruction=CHECKLIST
-)
-
-async def ask_gemini(user_id: int, text: str) -> str:
+async def ask_openrouter(user_id: int, text: str) -> str:
     if user_id not in user_histories:
-        user_histories[user_id] = gemini.start_chat(history=[])
-    response = user_histories[user_id].send_message(text)
-    return response.text
+        user_histories[user_id] = []
+
+    user_histories[user_id].append({"role": "user", "content": text})
+
+    if len(user_histories[user_id]) > 20:
+        user_histories[user_id] = user_histories[user_id][-20:]
+
+    async with httpx.AsyncClient(timeout=30) as client:
+        response = await client.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "mistralai/mistral-7b-instruct:free",
+                "messages": [
+                    {"role": "system", "content": CHECKLIST},
+                    *user_histories[user_id]
+                ]
+            }
+        )
+        data = response.json()
+        reply = data["choices"][0]["message"]["content"]
+
+    user_histories[user_id].append({"role": "assistant", "content": reply})
+    return reply
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
@@ -62,7 +79,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
     try:
-        reply = await ask_gemini(update.effective_user.id, update.message.text)
+        reply = await ask_openrouter(update.effective_user.id, update.message.text)
         await update.message.reply_text(reply)
     except Exception as e:
         print(f"Ошибка: {e}")
