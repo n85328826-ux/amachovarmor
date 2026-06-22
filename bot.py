@@ -2,15 +2,9 @@ import httpx
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
-# ==============================
-# НАСТРОЙКИ — вставьте свои токены
-# ==============================
 TELEGRAM_TOKEN = "8854935248:AAFldkciTv21faskfdrflwsW-ESeswBL6jM"
-OPENROUTER_API_KEY = "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"  # sk-or-...
+OPENROUTER_API_KEY = "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"  # вставьте ваш ключ sk-or-v1-...
 
-# ==============================
-# ЧЕК-ЛИСТ
-# ==============================
 CHECKLIST = """
 Ты — помощник мастера по оклейке телефонов защитными плёнками. 
 Отвечай на вопросы клиентов вежливо, по делу, коротко (2-5 предложений).
@@ -45,7 +39,6 @@ async def ask_openrouter(user_id: int, text: str) -> str:
         user_histories[user_id] = []
 
     user_histories[user_id].append({"role": "user", "content": text})
-
     if len(user_histories[user_id]) > 20:
         user_histories[user_id] = user_histories[user_id][-20:]
 
@@ -55,6 +48,8 @@ async def ask_openrouter(user_id: int, text: str) -> str:
             headers={
                 "Authorization": f"Bearer {OPENROUTER_API_KEY}",
                 "Content-Type": "application/json",
+                "HTTP-Referer": "https://telegram.org",
+                "X-Title": "Telegram Bot",
             },
             json={
                 "model": "mistralai/mistral-7b-instruct",
@@ -65,6 +60,14 @@ async def ask_openrouter(user_id: int, text: str) -> str:
             }
         )
         data = response.json()
+        print(f"STATUS: {response.status_code}")
+        print(f"RESPONSE: {data}")
+
+        if "choices" not in data:
+            error = data.get("error", {}).get("message", str(data))
+            print(f"ОШИБКА API: {error}")
+            return f"Ошибка: {error}"
+
         reply = data["choices"][0]["message"]["content"]
 
     user_histories[user_id].append({"role": "assistant", "content": reply})
@@ -82,7 +85,7 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply = await ask_openrouter(update.effective_user.id, update.message.text)
         await update.message.reply_text(reply)
     except Exception as e:
-        print(f"Ошибка: {e}")
+        print(f"EXCEPTION: {e}")
         await update.message.reply_text("Извините, попробуйте ещё раз.")
 
 def main():
