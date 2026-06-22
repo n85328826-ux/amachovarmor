@@ -52,7 +52,7 @@ async def ask_openrouter(user_id: int, text: str) -> str:
                 "X-Title": "Telegram Bot",
             },
             json={
-                "model": "mistralai/mistral-7b-instruct",
+                "model": "openai/gpt-3.5-turbo",
                 "messages": [
                     {"role": "system", "content": CHECKLIST},
                     *user_histories[user_id]
